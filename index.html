@@ -4,22 +4,72 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Today's Omer Count</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Assistant&display=swap" rel="stylesheet">
+
   <style>
-    body { font-family: sans-serif; padding: 1rem; max-width: 700px; margin: auto; background: #f9f9f9; }
-    h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
-    .location { font-style: italic; margin-bottom: 1rem; }
-    .omer-box { background: white; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    .label { font-weight: bold; margin-top: 1rem; }
-    .hebrew { direction: rtl; text-align: right; font-size: 1.2rem; }
+    body {
+      font-family: 'Assistant', sans-serif;
+      background: #f0f4f8;
+      padding: 1.5rem;
+      max-width: 800px;
+      margin: auto;
+      color: #1c1c1c;
+    }
+
+    h1 {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #2c3e50;
+    }
+
+    hr {
+      border: none;
+      height: 2px;
+      background: #ccc;
+      margin-bottom: 2rem;
+    }
+
+    .location {
+      font-style: italic;
+      text-align: center;
+      color: #555;
+      margin-bottom: 1.5rem;
+    }
+
+    .omer-box {
+      background: #ffffff;
+      border: 2px solid #dddddd;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .label {
+      font-weight: bold;
+      margin-top: 1.2rem;
+      color: #005577;
+    }
+
+    .hebrew {
+      direction: rtl;
+      text-align: right;
+      font-size: 1.25rem;
+      color: #333366;
+      font-family: 'Assistant', sans-serif;
+    }
   </style>
 </head>
 <body>
   <h1>Today's Omer Count</h1>
+  <hr />
   <div class="location" id="location">Detecting location...</div>
   <div class="omer-box" id="omerContent">Loading today's Omer info...</div>
 
   <script>
-    const omerData = []; // Placeholder - we'll fetch or inject JSON later
+    const omerData = [];
 
     async function fetchLocationAndSunset() {
       if (!navigator.geolocation) {
@@ -30,7 +80,6 @@
       navigator.geolocation.getCurrentPosition(async (position) => {
         const { latitude, longitude } = position.coords;
 
-        // Display detected location
         try {
           const locRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
           const locData = await locRes.json();
@@ -41,13 +90,11 @@
           document.getElementById('location').textContent = `Location detected.`;
         }
 
-        // Get sunset time
         const sunRes = await fetch(`https://api.sunrise-sunset.org/json?lat=${latitude}&lng=${longitude}&formatted=0`);
         const sunData = await sunRes.json();
         const sunsetTime = new Date(sunData.results.sunset);
         const now = new Date();
 
-        // Adjust to halachic date: if after sunset, advance one day
         let today = new Date();
         if (now >= sunsetTime) {
           today.setDate(today.getDate() + 1);
@@ -99,8 +146,7 @@
       `;
     }
 
-    // Temporary JSON injection (to replace with real fetch if hosted)
-    fetch('omer.json') // Will load external JSON on GitHub Pages
+    fetch('omer.json')
       .then(res => res.json())
       .then(data => {
         omerData.push(...data);
