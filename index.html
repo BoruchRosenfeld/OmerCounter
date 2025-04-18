@@ -32,11 +32,11 @@
       margin-bottom: 2rem;
     }
 
-    .location {
+    .location, .datetime {
       font-style: italic;
       text-align: center;
       color: #555;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
 
     .omer-box {
@@ -72,11 +72,20 @@
 <body>
   <h1>Today's Omer Count</h1>
   <hr />
+  <div class="datetime" id="datetime"></div>
   <div class="location" id="location">Detecting location...</div>
   <div class="omer-box" id="omerContent">Loading today's Omer info...</div>
 
   <script>
     const omerData = [];
+
+    function updateDateTime() {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dateStr = `${now.toLocaleDateString(undefined, options)}, ${time}`;
+      document.getElementById('datetime').textContent = `Today is ${dateStr}`;
+    }
 
     async function fetchLocationAndSunset() {
       if (!navigator.geolocation) {
@@ -142,6 +151,7 @@
       .then(res => res.json())
       .then(data => {
         omerData.push(...data);
+        updateDateTime();
         fetchLocationAndSunset();
       });
   </script>
