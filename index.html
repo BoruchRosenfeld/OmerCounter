@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Today's Omer Count</title>
+  <style>
+    body { font-family: sans-serif; padding: 1rem; max-width: 700px; margin: auto; background: #f9f9f9; }
+    h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .location { font-style: italic; margin-bottom: 1rem; }
+    .omer-box { background: white; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .label { font-weight: bold; margin-top: 1rem; }
+    .hebrew { direction: rtl; text-align: right; font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+  <h1>Today's Omer Count</h1>
+  <div class="location" id="location">Detecting location...</div>
+  <div class="omer-box" id="omerContent">Loading today's Omer info...</div>
+
+  <script>
+    const omerData = []; // Placeholder - we'll fetch or inject JSON later
+
+    async function fetchLocationAndSunset() {
+      if (!navigator.geolocation) {
+        document.getElementById('location').textContent = "Geolocation not supported.";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        // Display detected location
+        try {
+          const locRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+          const locData = await locRes.json();
+          const displayName = locData.address.city || locData.address.town || locData.address.village || locData.address.state;
+          const country = locData.address.country;
+          document.getElementById('location').textContent = `Detected location: ${displayName}, ${country}`;
+        } catch (err) {
+          document.getElementById('location').textContent = `Location detected.`;
+        }
+
+        // Get sunset time
+        const sunRes = await fetch(`https://api.sunrise-sunset.org/json?lat=${latitude}&lng=${longitude}&formatted=0`);
+        const sunData = await sunRes.json();
+        const sunsetTime = new Date(sunData.results.sunset);
+        const now = new Date();
+
+        // Adjust to halachic date: if after sunset, advance one day
+        let today = new Date();
+        if (now >= sunsetTime) {
+          today.setDate(today.getDate() + 1);
+        }
+
+        const todayStr = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+        const omer = omerData.find(row => row['English Date'] === todayStr);
+
+        if (omer) {
+          displayOmer(omer);
+        } else {
+          document.getElementById('omerContent').textContent = 'No Omer count found for today.';
+        }
+      });
+    }
+
+    function displayOmer(omer) {
+      const box = document.getElementById('omerContent');
+      box.innerHTML = `
+        <div class="label">Hebrew Date:</div>
+        <div class="hebrew">${omer['Hebrew Date']}</div>
+
+        <div class="label">Sefira of the Day:</div>
+        <div>${omer['Sefira of the day']}</div>
+
+        <div class="label">Bracha:</div>
+        <div class="hebrew">${omer['Bracha']}</div>
+
+        <div class="label">Count:</div>
+        <div class="hebrew">${omer['Day']}</div>
+
+        <div class="label">Psalm (Lamnatzaich):</div>
+        <div class="hebrew">${omer['Lamnatzaich']}</div>
+
+        <div class="label">Ana Bekoach:</div>
+        <div class="hebrew">${omer['Anna']}</div>
+
+        <div class="label">Yehi Ratzon:</div>
+        <div class="hebrew">${omer['Yehi']}</div>
+
+        <div class="label">Ribono Shel Olam:</div>
+        <div class="hebrew">${omer['Ribono']}</div>
+
+        <div class="label">Uvechen:</div>
+        <div class="hebrew">${omer['Ivechain']}</div>
+
+        <div class="label">V'etaher:</div>
+        <div class="hebrew">${omer['Vether']}</div>
+      `;
+    }
+
+    // Temporary JSON injection (to replace with real fetch if hosted)
+    fetch('omer.json') // Will load external JSON on GitHub Pages
+      .then(res => res.json())
+      .then(data => {
+        omerData.push(...data);
+        fetchLocationAndSunset();
+      });
+  </script>
+</body>
+</html>
